@@ -1,1 +1,1888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoboSolve - Robotics Problem Marketplace</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .problem-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid;
+        }
+        
+        .problem-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .discussion-bubble {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .payment-modal {
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tag {
+            transition: all 0.2s;
+        }
+        
+        .tag:hover {
+            transform: scale(1.05);
+        }
+        
+        .vote-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        #detailedProblemModal {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .file-preview-item {
+            transition: all 0.2s ease;
+        }
+        
+        .file-preview-item:hover {
+            transform: translateX(2px);
+        }
+        
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        
+        .file-image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .file-image-preview:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="bg-purple-600 w-8 h-8 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-robot text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-purple-700">Robo<span class="text-blue-500">Solve</span></h1>
+            </div>
+            
+            <div class="flex items-center space-x-4" id="navAuthButtons">
+                <!-- Login/Signup buttons (shown when not logged in) -->
+                <button onclick="showLoginModal()" class="text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
+                </button>
+                <button onclick="showSignupModal()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-5 py-2 rounded-lg font-semibold hover:opacity-90 transition">
+                    <i class="fas fa-user-plus mr-2"></i>Sign Up
+                </button>
+            </div>
+            <div class="flex items-center space-x-4 hidden" id="navUserInfo">
+                <!-- User info (shown when logged in) -->
+                <button onclick="showPostModal()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-5 py-2 rounded-lg font-semibold hover:opacity-90 transition">
+                    <i class="fas fa-plus mr-2"></i>Post Problem
+                </button>
+                <div class="flex items-center space-x-3 bg-gray-100 px-4 py-2 rounded-lg">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold" id="userAvatar">
+                        U
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-800" id="userName">User</p>
+                        <p class="text-xs text-gray-500" id="userEmail">user@example.com</p>
+                    </div>
+                </div>
+                <button onclick="logout()" class="text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg font-medium hover:bg-gray-100 transition" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
 
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Hero Section -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 mb-8 border border-blue-100">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="md:w-2/3">
+                    <h2 class="text-4xl font-bold mb-4 text-gray-800">
+                        Connect Robotics Problems with <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Global Experts</span>
+                    </h2>
+                    <p class="text-gray-600 mb-6 text-lg">
+                        Post your robotics challenge. Get solutions from engineers worldwide. Collaborate. Build. Pay securely.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="bg-white rounded-lg p-4 shadow border">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-lightbulb text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold">5,247+</p>
+                                    <p class="text-sm text-gray-500">Problems Solved</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow border">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-users text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold">2,891+</p>
+                                    <p class="text-sm text-gray-500">Expert Engineers</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow border">
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-handshake text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold">$4.2M+</p>
+                                    <p class="text-sm text-gray-500">In Transactions</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 md:mt-0">
+                    <div class="bg-white rounded-xl p-6 shadow-xl border">
+                        <div class="text-center mb-4">
+                            <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto flex items-center justify-center">
+                                <i class="fas fa-robot text-white text-3xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2 text-center">How It Works</h3>
+                        <ol class="space-y-3">
+                            <li class="flex items-center">
+                                <div class="bg-blue-100 text-blue-800 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mr-3">1</div>
+                                <span>Post your robotics problem</span>
+                            </li>
+                            <li class="flex items-center">
+                                <div class="bg-blue-100 text-blue-800 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mr-3">2</div>
+                                <span>Experts discuss solutions</span>
+                            </li>
+                            <li class="flex items-center">
+                                <div class="bg-blue-100 text-blue-800 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mr-3">3</div>
+                                <span>Collaborate & build</span>
+                            </li>
+                            <li class="flex items-center">
+                                <div class="bg-blue-100 text-blue-800 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mr-3">4</div>
+                                <span>Pay securely upon completion</span>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Problems Feed (Left - Reddit-style) -->
+            <div class="lg:w-2/3">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Recent Problems</h2>
+                    <div class="flex space-x-2">
+                        <button class="px-4 py-2 bg-white border rounded-lg text-sm font-medium hover:bg-gray-50">Latest</button>
+                        <button class="px-4 py-2 bg-white border rounded-lg text-sm font-medium hover:bg-gray-50">Popular</button>
+                        <button class="px-4 py-2 bg-white border rounded-lg text-sm font-medium hover:bg-gray-50">Unsolved</button>
+                    </div>
+                </div>
+
+                <!-- Problem Cards Will Be Inserted Here -->
+                <div id="problemsFeed">
+                    <!-- Dynamic content from JavaScript -->
+                </div>
+            </div>
+
+            <!-- Sidebar (Right) -->
+            <div class="lg:w-1/3">
+                <!-- Top Experts -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800">Top Experts Online</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">DR</div>
+                                <div class="ml-3">
+                                    <p class="font-semibold">Dr. Robotnik</p>
+                                    <p class="text-sm text-gray-500">Industrial Robotics</p>
+                                </div>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Online</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">AS</div>
+                                <div class="ml-3">
+                                    <p class="font-semibold">Alex Sterling</p>
+                                    <p class="text-sm text-gray-500">Drone Specialist</p>
+                                </div>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Online</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold">MJ</div>
+                                <div class="ml-3">
+                                    <p class="font-semibold">Maya Johnson</p>
+                                    <p class="text-sm text-gray-500">Medical Robotics</p>
+                                </div>
+                            </div>
+                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Away</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Categories -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800">Popular Categories</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tag bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-blue-200">Agriculture</span>
+                        <span class="tag bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-green-200">Medical</span>
+                        <span class="tag bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-purple-200">Drones</span>
+                        <span class="tag bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-red-200">Manufacturing</span>
+                        <span class="tag bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-yellow-200">Education</span>
+                        <span class="tag bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-pink-200">Autonomous Vehicles</span>
+                        <span class="tag bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-indigo-200">Space Robotics</span>
+                        <span class="tag bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-gray-200">Home Automation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- Post Problem Modal -->
+    <div id="postModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-lg mx-4 p-6 payment-modal">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Post a New Problem</h3>
+                <button onclick="hidePostModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Problem Title</label>
+                    <input type="text" id="problemTitle" placeholder="e.g., Need strawberry picking robot" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Description</label>
+                    <textarea id="problemDesc" rows="4" placeholder="Describe your robotics challenge in detail..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Budget ($)</label>
+                        <input type="number" id="problemBudget" placeholder="5000" class="w-full p-3 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Category</label>
+                        <select id="problemCategory" class="w-full p-3 border rounded-lg">
+                            <option>Agriculture</option>
+                            <option>Medical</option>
+                            <option>Manufacturing</option>
+                            <option>Drones</option>
+                            <option>Education</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- File Upload Section -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Attach Files (Optional)</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition">
+                        <input type="file" id="problemFiles" multiple accept="image/*,video/*,.pdf,.doc,.docx,.zip" class="hidden" onchange="handleProblemFileUpload(event)">
+                        <label for="problemFiles" class="cursor-pointer">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                            <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                            <p class="text-xs text-gray-400 mt-1">Images, Videos, PDF, DOC, ZIP (Max 10MB each)</p>
+                        </label>
+                    </div>
+                    <div id="problemFilePreview" class="mt-3 space-y-2">
+                        <!-- File previews will be added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-end space-x-3">
+                <button onclick="hidePostModal()" class="px-5 py-2 border rounded-lg font-medium hover:bg-gray-50">Cancel</button>
+                <button onclick="postNewProblem()" class="px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90">
+                    Post Problem
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md mx-4 p-6 payment-modal">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Complete Payment</h3>
+                <button onclick="hidePaymentModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-lock text-green-600 text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-lg">Secure Payment</h4>
+                <p class="text-gray-600 mt-2">Your funds are held in escrow until project completion</p>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-600">Project:</span>
+                    <span class="font-semibold" id="paymentProjectName"></span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-600">Expert:</span>
+                    <span class="font-semibold" id="paymentExpertName"></span>
+                </div>
+                <div class="flex justify-between text-lg font-bold pt-3 border-t">
+                    <span>Total Amount:</span>
+                    <span class="text-green-600" id="paymentAmount"></span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Payment Method</label>
+                <div class="space-y-2">
+                    <div class="flex items-center p-3 border rounded-lg hover:bg-blue-50 cursor-pointer">
+                        <input type="radio" name="paymentMethod" checked class="mr-3">
+                        <i class="fab fa-cc-stripe text-blue-600 text-xl mr-3"></i>
+                        <span>Credit/Debit Card</span>
+                    </div>
+                    <div class="flex items-center p-3 border rounded-lg hover:bg-blue-50 cursor-pointer">
+                        <input type="radio" name="paymentMethod" class="mr-3">
+                        <i class="fab fa-paypal text-blue-500 text-xl mr-3"></i>
+                        <span>PayPal</span>
+                    </div>
+                    <div class="flex items-center p-3 border rounded-lg hover:bg-blue-50 cursor-pointer">
+                        <input type="radio" name="paymentMethod" class="mr-3">
+                        <i class="fas fa-university text-gray-600 text-xl mr-3"></i>
+                        <span>Bank Transfer</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="completePayment()" class="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-bold text-lg hover:opacity-90">
+                <i class="fas fa-lock mr-2"></i> Pay Securely
+            </button>
+            
+            <p class="text-center text-sm text-gray-500 mt-4">
+                <i class="fas fa-shield-alt mr-1"></i> 100% Secure • Money-Back Guarantee
+            </p>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md mx-4 p-6 payment-modal">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Welcome Back</h3>
+                <button onclick="hideLoginModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user text-white text-2xl"></i>
+                </div>
+                <p class="text-gray-600">Sign in to continue to RoboSolve</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="loginEmail" placeholder="your.email@example.com" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="mr-2">
+                        <span class="text-sm text-gray-600">Remember me</span>
+                    </label>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800">Forgot password?</a>
+                </div>
+            </div>
+            
+            <button onclick="handleLogin()" class="w-full mt-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-bold text-lg hover:opacity-90">
+                <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+            </button>
+            
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    Don't have an account? 
+                    <a href="#" onclick="hideLoginModal(); showSignupModal();" class="text-blue-600 font-semibold hover:text-blue-800">Sign Up</a>
+                </p>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <p class="text-xs text-center text-gray-500 mb-2">Demo Mode: Use any email/password to login</p>
+                <div class="flex gap-2">
+                    <button onclick="quickLogin('demo@robosolve.com', 'demo123')" class="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">
+                        <i class="fas fa-bolt mr-1"></i> Quick Demo Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md mx-4 p-6 payment-modal max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Create Account</h3>
+                <button onclick="hideSignupModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user-plus text-white text-2xl"></i>
+                </div>
+                <p class="text-gray-600">Join RoboSolve community today</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Full Name</label>
+                    <input type="text" id="signupName" placeholder="John Doe" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="signupEmail" placeholder="your.email@example.com" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="signupPassword" placeholder="Minimum 6 characters" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Confirm Password</label>
+                    <input type="password" id="signupConfirmPassword" placeholder="Re-enter your password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">Account Type</label>
+                    <select id="signupAccountType" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        <option>Problem Solver (Post Problems)</option>
+                        <option>Expert (Solve Problems)</option>
+                        <option>Both</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-start">
+                    <input type="checkbox" id="signupTerms" class="mt-1 mr-2">
+                    <label for="signupTerms" class="text-sm text-gray-600">
+                        I agree to the <a href="#" class="text-blue-600 hover:text-blue-800">Terms of Service</a> and <a href="#" class="text-blue-600 hover:text-blue-800">Privacy Policy</a>
+                    </label>
+                </div>
+            </div>
+            
+            <button onclick="handleSignup()" class="w-full mt-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg font-bold text-lg hover:opacity-90">
+                <i class="fas fa-user-plus mr-2"></i> Create Account
+            </button>
+            
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    Already have an account? 
+                    <a href="#" onclick="hideSignupModal(); showLoginModal();" class="text-purple-600 font-semibold hover:text-purple-800">Sign In</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Problem View Modal -->
+    <div id="detailedProblemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-4xl mx-4 my-8 p-6 payment-modal max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-start mb-6">
+                <button onclick="hideDetailedProblemView()" class="text-gray-500 hover:text-gray-700 flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Feed
+                </button>
+                <button onclick="hideDetailedProblemView()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Problem Header -->
+            <div id="detailedProblemHeader" class="mb-6">
+                <!-- Content will be dynamically inserted -->
+            </div>
+            
+            <!-- Problem Description -->
+            <div id="detailedProblemDescription" class="mb-6">
+                <!-- Content will be dynamically inserted -->
+            </div>
+            
+            <!-- Discussion Threads Section -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-comments text-blue-500 mr-2"></i>
+                        <span id="detailedDiscussionCount">Discussions</span>
+                    </h3>
+                    <button onclick="showAddCommentForm()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:opacity-90">
+                        <i class="fas fa-plus mr-2"></i>Add Solution/Comment
+                    </button>
+                </div>
+                
+                <!-- Add Comment Form (Hidden by default) -->
+                <div id="addCommentForm" class="hidden bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
+                    <textarea id="newCommentText" rows="4" placeholder="Share your solution, ask a question, or provide feedback..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-3"></textarea>
+                    
+                    <!-- File Upload for Comment -->
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium mb-1 text-gray-600">Attach Files (Optional)</label>
+                        <div class="border border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-blue-500 transition bg-white">
+                            <input type="file" id="commentFiles" multiple accept="image/*,video/*,.pdf,.doc,.docx,.zip,.txt" class="hidden" onchange="handleCommentFileUpload(event, 'comment')">
+                            <label for="commentFiles" class="cursor-pointer flex items-center justify-center text-xs text-gray-600">
+                                <i class="fas fa-paperclip mr-2"></i>
+                                <span>Click to attach files</span>
+                            </label>
+                        </div>
+                        <div id="commentFilePreview" class="mt-2 space-y-1">
+                            <!-- File previews will be added here -->
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="hideAddCommentForm()" class="px-4 py-2 border rounded-lg font-medium hover:bg-gray-50">Cancel</button>
+                        <button onclick="submitDetailedComment()" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90">
+                            <i class="fas fa-paper-plane mr-2"></i>Post Comment
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Discussion Threads Container -->
+                <div id="detailedDiscussionThreads" class="space-y-4">
+                    <!-- Discussion threads will be inserted here -->
+                </div>
+                
+                <!-- Empty State -->
+                <div id="noDiscussionsMessage" class="text-center py-12 hidden">
+                    <i class="fas fa-comments text-gray-300 text-5xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No discussions yet</p>
+                    <p class="text-gray-400 text-sm mt-2">Be the first to share a solution or ask a question!</p>
+                </div>
+            </div>
+            
+            <!-- Action Buttons Footer -->
+            <div id="detailedProblemActions" class="pt-6 border-t border-gray-200">
+                <!-- Action buttons will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast" class="fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-xl z-50 hidden">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle text-xl mr-3"></i>
+            <div>
+                <p class="font-semibold" id="toastTitle"></p>
+                <p class="text-sm opacity-90" id="toastMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // ========== USER AUTHENTICATION STATE ==========
+        let currentUser = null;
+
+        // Check if user is already logged in (from localStorage)
+        function checkAuthState() {
+            const savedUser = localStorage.getItem('robosolve_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                updateNavForLoggedIn();
+            } else {
+                updateNavForLoggedOut();
+            }
+        }
+
+        function updateNavForLoggedIn() {
+            document.getElementById('navAuthButtons').classList.add('hidden');
+            document.getElementById('navUserInfo').classList.remove('hidden');
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userEmail').textContent = currentUser.email;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        function updateNavForLoggedOut() {
+            document.getElementById('navAuthButtons').classList.remove('hidden');
+            document.getElementById('navUserInfo').classList.add('hidden');
+        }
+
+        // ========== MODAL CONTROLS FOR AUTH ==========
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function hideLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+            // Clear form
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        function showSignupModal() {
+            document.getElementById('signupModal').classList.remove('hidden');
+        }
+
+        function hideSignupModal() {
+            document.getElementById('signupModal').classList.add('hidden');
+            // Clear form
+            document.getElementById('signupName').value = '';
+            document.getElementById('signupEmail').value = '';
+            document.getElementById('signupPassword').value = '';
+            document.getElementById('signupConfirmPassword').value = '';
+            document.getElementById('signupAccountType').value = 'Problem Solver (Post Problems)';
+            document.getElementById('signupTerms').checked = false;
+        }
+
+        // ========== AUTHENTICATION FUNCTIONS ==========
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                alert("Please enter both email and password");
+                return;
+            }
+
+            // Demo mode: Check against localStorage or create a demo login
+            const users = JSON.parse(localStorage.getItem('robosolve_users') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user || password.length >= 3) {
+                // In demo mode, accept any login with valid format
+                currentUser = user || {
+                    name: email.split('@')[0],
+                    email: email,
+                    accountType: 'Both'
+                };
+                
+                localStorage.setItem('robosolve_user', JSON.stringify(currentUser));
+                updateNavForLoggedIn();
+                hideLoginModal();
+                showToast("Welcome Back!", `Logged in as ${currentUser.name}`);
+            } else {
+                alert("Invalid credentials. In demo mode, use any email and password (min 3 chars).");
+            }
+        }
+
+        function handleSignup() {
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            const accountType = document.getElementById('signupAccountType').value;
+            const termsAccepted = document.getElementById('signupTerms').checked;
+
+            if (!name || !email || !password || !confirmPassword) {
+                alert("Please fill all required fields");
+                return;
+            }
+
+            if (password.length < 6) {
+                alert("Password must be at least 6 characters");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match");
+                return;
+            }
+
+            if (!termsAccepted) {
+                alert("Please accept the Terms of Service and Privacy Policy");
+                return;
+            }
+
+            // Check if user already exists
+            const users = JSON.parse(localStorage.getItem('robosolve_users') || '[]');
+            if (users.find(u => u.email === email)) {
+                alert("An account with this email already exists. Please login instead.");
+                hideSignupModal();
+                showLoginModal();
+                document.getElementById('loginEmail').value = email;
+                return;
+            }
+
+            // Create new user
+            const newUser = {
+                name: name,
+                email: email,
+                password: password, // In production, this should be hashed
+                accountType: accountType,
+                createdAt: new Date().toISOString()
+            };
+
+            users.push(newUser);
+            localStorage.setItem('robosolve_users', JSON.stringify(users));
+
+            // Auto login after signup
+            currentUser = {
+                name: name,
+                email: email,
+                accountType: accountType
+            };
+            localStorage.setItem('robosolve_user', JSON.stringify(currentUser));
+            
+            updateNavForLoggedIn();
+            hideSignupModal();
+            showToast("Account Created!", `Welcome to RoboSolve, ${name}!`);
+        }
+
+        function quickLogin(email, password) {
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = password;
+            handleLogin();
+        }
+
+        function logout() {
+            if (confirm("Are you sure you want to logout?")) {
+                currentUser = null;
+                localStorage.removeItem('robosolve_user');
+                updateNavForLoggedOut();
+                showToast("Logged Out", "You have been successfully logged out.");
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const loginModal = document.getElementById('loginModal');
+            const signupModal = document.getElementById('signupModal');
+            const postModal = document.getElementById('postModal');
+            const paymentModal = document.getElementById('paymentModal');
+            const detailedProblemModal = document.getElementById('detailedProblemModal');
+            
+            if (event.target == loginModal) {
+                hideLoginModal();
+            }
+            if (event.target == signupModal) {
+                hideSignupModal();
+            }
+            if (event.target == postModal) {
+                hidePostModal();
+            }
+            if (event.target == paymentModal) {
+                hidePaymentModal();
+            }
+            if (event.target == detailedProblemModal) {
+                hideDetailedProblemView();
+            }
+        }
+
+        // ========== DEMO DATA ==========
+        let problems = [
+            {
+                id: 1,
+                title: "Strawberry Picking Robot Needed",
+                description: "Looking for a robot that can gently pick ripe strawberries without damaging them. Must work in greenhouse environment with uneven terrain.",
+                user: "Green Valley Farms",
+                budget: 5000,
+                category: "Agriculture",
+                timestamp: "2 hours ago",
+                upvotes: 24,
+                comments: 8,
+                solved: false,
+                discussions: [
+                    {
+                        user: "AgriBotExpert", 
+                        text: "I've built similar systems using soft grippers and computer vision. The key is detecting ripeness through color analysis and using a gentle grip force of around 0.5N to avoid bruising. I can share my design documentation if you're interested.", 
+                        timestamp: "1 hour ago", 
+                        upvotes: 5,
+                        replies: [
+                            {
+                                user: "Green Valley Farms",
+                                text: "That sounds perfect! Can you share more details about the computer vision setup?",
+                                timestamp: "50 min ago",
+                                upvotes: 2
+                            },
+                            {
+                                user: "AgriBotExpert",
+                                text: "Sure! I used a Raspberry Pi with OpenCV for image processing. The algorithm analyzes RGB values to determine ripeness with 92% accuracy.",
+                                timestamp: "40 min ago",
+                                upvotes: 3
+                            }
+                        ]
+                    },
+                    {
+                        user: "RoboFarmer", 
+                        text: "Have you considered using suction cups instead of grippers? They're gentler on delicate fruits and work well in controlled environments.", 
+                        timestamp: "45 min ago", 
+                        upvotes: 3,
+                        replies: []
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "Hospital Sanitization Robot",
+                description: "Need autonomous robot to disinfect hospital corridors at night. Must navigate around equipment and people safely.",
+                user: "City General Hospital",
+                budget: 15000,
+                category: "Medical",
+                timestamp: "5 hours ago",
+                upvotes: 42,
+                comments: 15,
+                solved: false,
+                discussions: [
+                    {
+                        user: "MedTechPro", 
+                        text: "UV-C light or chemical spray? What's your preference? I've worked with both systems and each has pros/cons. UV-C is more thorough but requires longer exposure time.", 
+                        timestamp: "3 hours ago", 
+                        upvotes: 8,
+                        replies: [
+                            {
+                                user: "City General Hospital",
+                                text: "UV-C preferred for better disinfection coverage. Chemical spray creates residue concerns.",
+                                timestamp: "2.5 hours ago",
+                                upvotes: 4
+                            }
+                        ]
+                    },
+                    {
+                        user: "HospitalAdmin", 
+                        text: "UV-C preferred. Must have safety sensors for human detection. The robot should automatically pause if anyone enters the corridor.", 
+                        timestamp: "2 hours ago", 
+                        upvotes: 4,
+                        replies: []
+                    },
+                    {
+                        user: "AutoNavExpert", 
+                        text: "I specialize in hospital navigation algorithms using LIDAR and SLAM. My system can map hospital corridors and avoid both static and dynamic obstacles. Would love to discuss your specific requirements!", 
+                        timestamp: "1 hour ago", 
+                        upvotes: 6,
+                        replies: [
+                            {
+                                user: "City General Hospital",
+                                text: "That's exactly what we need! Can you send over some case studies?",
+                                timestamp: "45 min ago",
+                                upvotes: 2
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "Educational Robot for STEM Class",
+                description: "Simple, affordable robot kit for middle school students to learn programming and robotics basics.",
+                user: "Lincoln Middle School",
+                budget: 2000,
+                category: "Education",
+                timestamp: "1 day ago",
+                upvotes: 31,
+                comments: 12,
+                solved: true,
+                discussions: [
+                    {user: "EdTechBuilder", text: "I've created similar kits using Raspberry Pi and Python.", timestamp: "20 hours ago", upvotes: 7},
+                    {user: "STEMTeacher", text: "Needs to be durable for classroom use!", timestamp: "18 hours ago", upvotes: 5},
+                    {user: "KidCoder", text: "Make it compatible with Scratch for beginners!", timestamp: "15 hours ago", upvotes: 9}
+                ]
+            }
+        ];
+
+        // ========== UTILITY FUNCTIONS ==========
+        function showToast(title, message) {
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            const toast = document.getElementById('successToast');
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        // ========== MODAL CONTROLS ==========
+        function showPostModal() {
+            if (!currentUser) {
+                alert("Please login first to post a problem");
+                showLoginModal();
+                return;
+            }
+            document.getElementById('postModal').classList.remove('hidden');
+        }
+
+        function hidePostModal() {
+            document.getElementById('postModal').classList.add('hidden');
+            // Clear file uploads
+            document.getElementById('problemFiles').value = '';
+            document.getElementById('problemFilePreview').innerHTML = '';
+            problemFiles = [];
+        }
+
+        function showPaymentModal(problemId) {
+            const problem = problems.find(p => p.id === problemId);
+            if (problem) {
+                document.getElementById('paymentProjectName').textContent = problem.title;
+                document.getElementById('paymentExpertName').textContent = "Dr. Robotnik"; // Demo expert
+                document.getElementById('paymentAmount').textContent = `$${problem.budget}`;
+                document.getElementById('paymentModal').classList.remove('hidden');
+            }
+        }
+
+        function hidePaymentModal() {
+            document.getElementById('paymentModal').classList.add('hidden');
+        }
+
+        // ========== FILE UPLOAD FUNCTIONS ==========
+        let problemFiles = [];
+        let commentFiles = {};
+        let replyFiles = {};
+
+        function handleProblemFileUpload(event) {
+            const files = Array.from(event.target.files);
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const previewContainer = document.getElementById('problemFilePreview');
+            
+            files.forEach(file => {
+                if (file.size > maxSize) {
+                    alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+                    return;
+                }
+                
+                const fileData = {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    file: file,
+                    id: Date.now() + Math.random()
+                };
+                
+                problemFiles.push(fileData);
+                addFilePreview(fileData, previewContainer, 'problem');
+            });
+        }
+
+        function handleCommentFileUpload(event, type) {
+            const files = Array.from(event.target.files);
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            let previewContainer;
+            let filesArray;
+            
+            if (type === 'comment') {
+                previewContainer = document.getElementById('commentFilePreview');
+                if (!commentFiles['comment']) commentFiles['comment'] = [];
+                filesArray = commentFiles['comment'];
+            } else if (type.startsWith('reply-')) {
+                const [_, problemId, index] = type.split('-');
+                previewContainer = document.getElementById(`replyFilePreview-${problemId}-${index}`);
+                const key = `${problemId}-${index}`;
+                if (!replyFiles[key]) replyFiles[key] = [];
+                filesArray = replyFiles[key];
+            }
+            
+            files.forEach(file => {
+                if (file.size > maxSize) {
+                    alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+                    return;
+                }
+                
+                const fileData = {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    file: file,
+                    id: Date.now() + Math.random()
+                };
+                
+                filesArray.push(fileData);
+                addFilePreview(fileData, previewContainer, type);
+            });
+        }
+
+        function addFilePreview(fileData, container, type) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-preview-item bg-white border border-gray-200 rounded-lg p-2 flex items-center justify-between';
+            fileItem.id = `file-${fileData.id}`;
+            
+            const icon = getFileIcon(fileData.type, fileData.name);
+            const size = formatFileSize(fileData.size);
+            
+            fileItem.innerHTML = `
+                <div class="flex items-center space-x-2 flex-1">
+                    ${icon}
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800 truncate">${fileData.name}</p>
+                        <p class="text-xs text-gray-500">${size}</p>
+                    </div>
+                </div>
+                ${fileData.type.startsWith('image/') ? `
+                    <img src="${URL.createObjectURL(fileData.file)}" 
+                         class="file-image-preview ml-2" 
+                         onclick="showImagePreview('${URL.createObjectURL(fileData.file)}', '${fileData.name}')"
+                         alt="Preview">
+                ` : ''}
+                <button onclick="removeFile('${fileData.id}', '${type}')" 
+                        class="ml-2 text-red-500 hover:text-red-700 p-1">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(fileItem);
+        }
+
+        function getFileIcon(fileType, fileName) {
+            if (fileType.startsWith('image/')) {
+                return '<div class="file-icon bg-blue-100 text-blue-600"><i class="fas fa-image"></i></div>';
+            } else if (fileType.startsWith('video/')) {
+                return '<div class="file-icon bg-purple-100 text-purple-600"><i class="fas fa-video"></i></div>';
+            } else if (fileType === 'application/pdf') {
+                return '<div class="file-icon bg-red-100 text-red-600"><i class="fas fa-file-pdf"></i></div>';
+            } else if (fileType.includes('word') || fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
+                return '<div class="file-icon bg-blue-100 text-blue-600"><i class="fas fa-file-word"></i></div>';
+            } else if (fileType === 'application/zip' || fileName.endsWith('.zip')) {
+                return '<div class="file-icon bg-yellow-100 text-yellow-600"><i class="fas fa-file-archive"></i></div>';
+            } else {
+                return '<div class="file-icon bg-gray-100 text-gray-600"><i class="fas fa-file"></i></div>';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function removeFile(fileId, type) {
+            if (type === 'problem') {
+                problemFiles = problemFiles.filter(f => f.id !== fileId);
+                const fileItem = document.getElementById(`file-${fileId}`);
+                if (fileItem) {
+                    fileItem.remove();
+                }
+            } else if (type === 'comment') {
+                commentFiles['comment'] = (commentFiles['comment'] || []).filter(f => f.id !== fileId);
+                const fileItem = document.getElementById(`file-${fileId}`);
+                if (fileItem) fileItem.remove();
+            } else if (type.startsWith('reply-')) {
+                const [_, problemId, index] = type.split('-');
+                const key = `${problemId}-${index}`;
+                replyFiles[key] = (replyFiles[key] || []).filter(f => f.id !== fileId);
+                const fileItem = document.getElementById(`file-${fileId}`);
+                if (fileItem) fileItem.remove();
+            }
+        }
+
+        function showImagePreview(imageUrl, fileName) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="relative max-w-4xl max-h-[90vh] p-4">
+                    <button onclick="this.closest('.fixed').remove()" class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <img src="${imageUrl}" alt="${fileName}" class="max-w-full max-h-[90vh] rounded-lg">
+                    <p class="text-white text-center mt-2">${fileName}</p>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+
+        function convertFilesToData(filesArray) {
+            return filesArray.map(f => ({
+                name: f.name,
+                size: f.size,
+                type: f.type,
+                url: URL.createObjectURL(f.file) // In production, this would be a server URL
+            }));
+        }
+
+        function renderFileAttachments(files, containerId) {
+            if (!files || files.length === 0) return '';
+            
+            return `
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                    <p class="text-xs font-medium text-gray-600 mb-2">
+                        <i class="fas fa-paperclip mr-1"></i>Attachments (${files.length})
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        ${files.map(file => {
+                            const icon = getFileIcon(file.type, file.name);
+                            const size = formatFileSize(file.size);
+                            return `
+                                <a href="${file.url}" target="_blank" 
+                                   class="file-preview-item bg-gray-50 border border-gray-200 rounded-lg p-2 flex items-center space-x-2 hover:bg-gray-100">
+                                    ${icon}
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800">${file.name}</p>
+                                        <p class="text-xs text-gray-500">${size}</p>
+                                    </div>
+                                    ${file.type.startsWith('image/') ? `
+                                        <img src="${file.url}" class="w-12 h-12 object-cover rounded ml-2" alt="Preview">
+                                    ` : ''}
+                                </a>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ========== CORE FUNCTIONS ==========
+        function postNewProblem() {
+            if (!currentUser) {
+                alert("Please login first to post a problem");
+                hidePostModal();
+                showLoginModal();
+                return;
+            }
+
+            const title = document.getElementById('problemTitle').value;
+            const desc = document.getElementById('problemDesc').value;
+            const budget = document.getElementById('problemBudget').value;
+            const category = document.getElementById('problemCategory').value;
+            
+            if (!title || !desc || !budget) {
+                alert("Please fill all required fields");
+                return;
+            }
+            
+            const files = convertFilesToData(problemFiles);
+            
+            const newProblem = {
+                id: problems.length + 1,
+                title: title,
+                description: desc,
+                user: currentUser.name,
+                budget: parseInt(budget),
+                category: category,
+                timestamp: "Just now",
+                upvotes: 0,
+                comments: 0,
+                solved: false,
+                discussions: [],
+                files: files
+            };
+            
+            problems.unshift(newProblem);
+            hidePostModal();
+            renderProblems();
+            showToast("Problem Posted!", "Experts are now reviewing your challenge!");
+            
+            // Clear form
+            document.getElementById('problemTitle').value = '';
+            document.getElementById('problemDesc').value = '';
+            document.getElementById('problemBudget').value = '';
+            document.getElementById('problemFiles').value = '';
+            document.getElementById('problemFilePreview').innerHTML = '';
+            problemFiles = [];
+        }
+
+        function addDiscussion(problemId) {
+            if (!currentUser) {
+                alert("Please login first to add a comment");
+                showLoginModal();
+                return;
+            }
+
+            const text = prompt("Enter your solution or comment:");
+            if (!text) return;
+            
+            const problem = problems.find(p => p.id === problemId);
+            if (problem) {
+                if (!problem.discussions) problem.discussions = [];
+                problem.discussions.unshift({
+                    user: currentUser.name,
+                    text: text,
+                    timestamp: "Just now",
+                    upvotes: 0,
+                    replies: []
+                });
+                problem.comments += 1;
+                renderProblems();
+                
+                // Refresh detailed view if it's currently showing this problem
+                if (currentDetailedProblemId === problemId) {
+                    renderDetailedProblemView(problem);
+                }
+                
+                showToast("Comment Added!", "Your input has been shared with the community.");
+            }
+        }
+
+        function upvoteProblem(problemId) {
+            const problem = problems.find(p => p.id === problemId);
+            if (problem) {
+                problem.upvotes += 1;
+                renderProblems();
+                showToast("Upvoted!", "Thanks for your vote!");
+            }
+        }
+
+        function completePayment() {
+            hidePaymentModal();
+            showToast("Payment Successful!", "Funds are now in escrow. Project can begin!");
+            
+            // Simulate project completion after 3 seconds
+            setTimeout(() => {
+                showToast("Project Completed!", "Payment has been released to the expert!");
+            }, 3000);
+        }
+
+        function showProfile() {
+            if (!currentUser) {
+                showLoginModal();
+                return;
+            }
+            showToast("Profile", `Logged in as ${currentUser.name} (${currentUser.email})`);
+        }
+
+        // ========== DETAILED PROBLEM VIEW ==========
+        let currentDetailedProblemId = null;
+
+        function showDetailedProblemView(problemId) {
+            const problem = problems.find(p => p.id === problemId);
+            if (!problem) return;
+            
+            currentDetailedProblemId = problemId;
+            renderDetailedProblemView(problem);
+            document.getElementById('detailedProblemModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function hideDetailedProblemView() {
+            document.getElementById('detailedProblemModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            hideAddCommentForm();
+            currentDetailedProblemId = null;
+        }
+
+        function renderDetailedProblemView(problem) {
+            // Render Header
+            const solvedBadge = problem.solved 
+                ? '<span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-semibold ml-3"><i class="fas fa-check mr-1"></i>Solved</span>'
+                : '<span class="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full font-semibold ml-3">Open</span>';
+            
+            const categoryColor = problem.category === 'Agriculture' ? 'green' : 
+                                  problem.category === 'Medical' ? 'red' : 
+                                  problem.category === 'Drones' ? 'purple' :
+                                  problem.category === 'Education' ? 'blue' : 'gray';
+            
+            document.getElementById('detailedProblemHeader').innerHTML = `
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-3 flex items-center">
+                            ${problem.title}
+                            ${solvedBadge}
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-4 text-gray-600">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-2">
+                                    ${problem.user.charAt(0)}
+                                </div>
+                                <span><i class="fas fa-user mr-1"></i>${problem.user}</span>
+                            </div>
+                            <span><i class="far fa-clock mr-1"></i>${problem.timestamp}</span>
+                            <span class="bg-${categoryColor}-100 text-${categoryColor}-800 px-3 py-1 rounded-full text-sm font-medium">
+                                <i class="fas fa-tag mr-1"></i>${problem.category}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-right ml-4">
+                        <div class="text-3xl font-bold text-blue-600">$${problem.budget.toLocaleString()}</div>
+                        <div class="text-sm text-gray-500">Budget</div>
+                    </div>
+                </div>
+            `;
+            
+            // Render Description
+            const problemFilesHTML = problem.files ? renderFileAttachments(problem.files, 'problemFiles') : '';
+            document.getElementById('detailedProblemDescription').innerHTML = `
+                <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3 flex items-center">
+                        <i class="fas fa-file-alt text-blue-500 mr-2"></i>Problem Description
+                    </h3>
+                    <p class="text-gray-700 text-lg leading-relaxed whitespace-pre-wrap">${problem.description}</p>
+                    ${problemFilesHTML}
+                </div>
+            `;
+            
+            // Render Discussion Threads
+            renderDetailedDiscussions(problem);
+            
+            // Render Actions
+            document.getElementById('detailedProblemActions').innerHTML = `
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <div class="flex items-center space-x-6">
+                        <button onclick="upvoteProblem(${problem.id}); renderDetailedProblemView(problems.find(p => p.id === ${problem.id}))" 
+                                class="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition">
+                            <i class="fas fa-arrow-up text-blue-600"></i>
+                            <span>${problem.upvotes}</span>
+                            <span class="text-gray-600">Upvotes</span>
+                        </button>
+                        <button class="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition">
+                            <i class="far fa-comment text-purple-600"></i>
+                            <span>${problem.comments}</span>
+                            <span class="text-gray-600">Comments</span>
+                        </button>
+                        <button onclick="shareProblem(${problem.id})" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition">
+                            <i class="fas fa-share text-green-600"></i>
+                            <span class="text-gray-600">Share</span>
+                        </button>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="showDetailedProblemView(${problem.id}); hideDetailedProblemView(); showPaymentModal(${problem.id})" 
+                                class="px-6 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100">
+                            <i class="fas fa-code-branch mr-2"></i>View Solutions
+                        </button>
+                        ${!problem.solved ? `
+                        <button onclick="showDetailedProblemView(${problem.id}); hideDetailedProblemView(); showPaymentModal(${problem.id})" 
+                                class="px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:opacity-90">
+                            <i class="fas fa-handshake mr-2"></i>Hire Expert
+                        </button>
+                        ` : `
+                        <button class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium">
+                            <i class="fas fa-check mr-2"></i>Completed
+                        </button>
+                        `}
+                    </div>
+                </div>
+            `;
+            
+            // Update discussion count
+            document.getElementById('detailedDiscussionCount').textContent = `Discussions (${problem.comments})`;
+        }
+
+        function renderDetailedDiscussions(problem) {
+            const container = document.getElementById('detailedDiscussionThreads');
+            const noDiscussionsMsg = document.getElementById('noDiscussionsMessage');
+            
+            if (!problem.discussions || problem.discussions.length === 0) {
+                container.innerHTML = '';
+                noDiscussionsMsg.classList.remove('hidden');
+                return;
+            }
+            
+            noDiscussionsMsg.classList.add('hidden');
+            
+            container.innerHTML = problem.discussions.map((disc, index) => `
+                <div class="discussion-bubble bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                ${disc.user.charAt(0)}
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-800">${disc.user}</p>
+                                <p class="text-sm text-gray-500">
+                                    <i class="far fa-clock mr-1"></i>${disc.timestamp}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 text-base leading-relaxed mb-4 whitespace-pre-wrap">${disc.text}</p>
+                    ${disc.files && disc.files.length > 0 ? `
+                        <div class="mb-4">
+                            <p class="text-xs font-medium text-gray-600 mb-2">
+                                <i class="fas fa-paperclip mr-1"></i>Attachments (${disc.files.length})
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                ${disc.files.map(file => {
+                                    const icon = getFileIcon(file.type, file.name);
+                                    const size = formatFileSize(file.size);
+                                    return `
+                                        <a href="${file.url}" target="_blank" 
+                                           class="file-preview-item bg-gray-50 border border-gray-200 rounded-lg p-2 flex items-center space-x-2 hover:bg-gray-100">
+                                            ${icon}
+                                            <div>
+                                                <p class="text-xs font-medium text-gray-800">${file.name}</p>
+                                                <p class="text-xs text-gray-500">${size}</p>
+                                            </div>
+                                            ${file.type.startsWith('image/') ? `
+                                                <img src="${file.url}" class="w-12 h-12 object-cover rounded ml-2" alt="Preview" onclick="event.stopPropagation(); showImagePreview('${file.url}', '${file.name}')">
+                                            ` : ''}
+                                        </a>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <div class="flex items-center space-x-4">
+                            <button onclick="upvoteDiscussion(${problem.id}, ${index})" 
+                                    class="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition">
+                                <i class="fas fa-arrow-up"></i>
+                                <span class="font-medium">${disc.upvotes || 0}</span>
+                                <span class="text-sm">Upvote</span>
+                            </button>
+                            <button onclick="showReplyForm(${problem.id}, ${index})" 
+                                    class="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition">
+                                <i class="fas fa-reply"></i>
+                                <span class="text-sm">Reply</span>
+                            </button>
+                        </div>
+                        ${disc.replies && disc.replies.length > 0 ? `
+                            <span class="text-sm text-gray-500">
+                                <i class="fas fa-comments mr-1"></i>${disc.replies.length} ${disc.replies.length === 1 ? 'reply' : 'replies'}
+                            </span>
+                        ` : ''}
+                    </div>
+                    ${disc.replies && disc.replies.length > 0 ? `
+                        <div class="mt-4 ml-8 space-y-3 border-l-2 border-blue-200 pl-4">
+                            ${disc.replies.map((reply, replyIndex) => `
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <div class="w-8 h-8 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                            ${reply.user.charAt(0)}
+                                        </div>
+                                        <span class="font-semibold text-sm">${reply.user}</span>
+                                        <span class="text-xs text-gray-500">${reply.timestamp}</span>
+                                    </div>
+                                    <p class="text-gray-700 text-sm">${reply.text}</p>
+                                    ${reply.files && reply.files.length > 0 ? `
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                            ${reply.files.map(file => {
+                                                const icon = getFileIcon(file.type, file.name);
+                                                const size = formatFileSize(file.size);
+                                                return `
+                                                    <a href="${file.url}" target="_blank" 
+                                                       class="file-preview-item bg-white border border-gray-200 rounded p-1.5 flex items-center space-x-1 hover:bg-gray-50">
+                                                        ${icon.replace('file-icon', 'file-icon').replace('w-12 h-12', 'w-8 h-8')}
+                                                        <div>
+                                                            <p class="text-xs font-medium text-gray-800">${file.name}</p>
+                                                            <p class="text-xs text-gray-500">${size}</p>
+                                                        </div>
+                                                    </a>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    ` : ''}
+                                    <button onclick="upvoteDiscussionReply(${problem.id}, ${index}, ${replyIndex})" 
+                                            class="mt-2 text-xs text-gray-500 hover:text-blue-600">
+                                        <i class="fas fa-arrow-up mr-1"></i>${reply.upvotes || 0}
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div id="replyForm-${problem.id}-${index}" class="hidden mt-4 ml-8 bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <textarea id="replyText-${problem.id}-${index}" rows="3" placeholder="Write your reply..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-2 text-sm"></textarea>
+                        
+                        <!-- File Upload for Reply -->
+                        <div class="mb-2">
+                            <input type="file" id="replyFiles-${problem.id}-${index}" multiple accept="image/*,video/*,.pdf,.doc,.docx,.zip,.txt" class="hidden" onchange="handleCommentFileUpload(event, 'reply-${problem.id}-${index}')">
+                            <label for="replyFiles-${problem.id}-${index}" class="cursor-pointer text-xs text-gray-600 hover:text-blue-600 inline-flex items-center">
+                                <i class="fas fa-paperclip mr-1"></i>
+                                <span>Attach files</span>
+                            </label>
+                        </div>
+                        <div id="replyFilePreview-${problem.id}-${index}" class="mb-2 space-y-1">
+                            <!-- File previews will be added here -->
+                        </div>
+                        
+                        <div class="flex justify-end space-x-2">
+                            <button onclick="hideReplyForm(${problem.id}, ${index})" class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50">Cancel</button>
+                            <button onclick="submitReply(${problem.id}, ${index})" class="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Reply</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showAddCommentForm() {
+            if (!currentUser) {
+                alert("Please login first to add a comment");
+                showLoginModal();
+                return;
+            }
+            document.getElementById('addCommentForm').classList.remove('hidden');
+            document.getElementById('newCommentText').focus();
+        }
+
+        function hideAddCommentForm() {
+            document.getElementById('addCommentForm').classList.add('hidden');
+            document.getElementById('newCommentText').value = '';
+            // Clear file uploads
+            document.getElementById('commentFiles').value = '';
+            document.getElementById('commentFilePreview').innerHTML = '';
+            commentFiles['comment'] = [];
+        }
+
+        function submitDetailedComment() {
+            if (!currentUser) {
+                alert("Please login first to add a comment");
+                showLoginModal();
+                return;
+            }
+
+            const text = document.getElementById('newCommentText').value.trim();
+            if (!text) {
+                alert("Please enter a comment");
+                return;
+            }
+
+            const problem = problems.find(p => p.id === currentDetailedProblemId);
+            if (problem) {
+                if (!problem.discussions) problem.discussions = [];
+                
+                const files = convertFilesToData(commentFiles['comment'] || []);
+                
+                problem.discussions.unshift({
+                    user: currentUser.name,
+                    text: text,
+                    timestamp: "Just now",
+                    upvotes: 0,
+                    replies: [],
+                    files: files
+                });
+                problem.comments += 1;
+                
+                renderDetailedProblemView(problem);
+                hideAddCommentForm();
+                
+                // Clear files
+                document.getElementById('commentFiles').value = '';
+                document.getElementById('commentFilePreview').innerHTML = '';
+                commentFiles['comment'] = [];
+                
+                showToast("Comment Added!", "Your comment has been posted successfully.");
+            }
+        }
+
+        function upvoteDiscussion(problemId, discussionIndex) {
+            if (!currentUser) {
+                alert("Please login to upvote");
+                showLoginModal();
+                return;
+            }
+
+            const problem = problems.find(p => p.id === problemId);
+            if (problem && problem.discussions[discussionIndex]) {
+                problem.discussions[discussionIndex].upvotes = (problem.discussions[discussionIndex].upvotes || 0) + 1;
+                renderDetailedProblemView(problem);
+            }
+        }
+
+        function showReplyForm(problemId, discussionIndex) {
+            if (!currentUser) {
+                alert("Please login to reply");
+                showLoginModal();
+                return;
+            }
+            
+            // Hide all other reply forms
+            document.querySelectorAll('[id^="replyForm-"]').forEach(form => {
+                form.classList.add('hidden');
+            });
+            
+            const replyForm = document.getElementById(`replyForm-${problemId}-${discussionIndex}`);
+            if (replyForm) {
+                replyForm.classList.remove('hidden');
+                document.getElementById(`replyText-${problemId}-${discussionIndex}`).focus();
+            }
+        }
+
+        function hideReplyForm(problemId, discussionIndex) {
+            const replyForm = document.getElementById(`replyForm-${problemId}-${discussionIndex}`);
+            if (replyForm) {
+                replyForm.classList.add('hidden');
+                document.getElementById(`replyText-${problemId}-${discussionIndex}`).value = '';
+                // Clear file uploads
+                document.getElementById(`replyFiles-${problemId}-${discussionIndex}`).value = '';
+                const previewContainer = document.getElementById(`replyFilePreview-${problemId}-${discussionIndex}`);
+                if (previewContainer) previewContainer.innerHTML = '';
+                const key = `${problemId}-${discussionIndex}`;
+                replyFiles[key] = [];
+            }
+        }
+
+        function submitReply(problemId, discussionIndex) {
+            const text = document.getElementById(`replyText-${problemId}-${discussionIndex}`).value.trim();
+            if (!text) {
+                alert("Please enter a reply");
+                return;
+            }
+
+            const problem = problems.find(p => p.id === problemId);
+            if (problem && problem.discussions[discussionIndex]) {
+                if (!problem.discussions[discussionIndex].replies) {
+                    problem.discussions[discussionIndex].replies = [];
+                }
+                
+                const key = `${problemId}-${discussionIndex}`;
+                const files = convertFilesToData(replyFiles[key] || []);
+                
+                problem.discussions[discussionIndex].replies.push({
+                    user: currentUser.name,
+                    text: text,
+                    timestamp: "Just now",
+                    upvotes: 0,
+                    files: files
+                });
+                
+                problem.comments += 1;
+                renderDetailedProblemView(problem);
+                
+                // Clear reply form files
+                document.getElementById(`replyFiles-${problemId}-${discussionIndex}`).value = '';
+                document.getElementById(`replyFilePreview-${problemId}-${discussionIndex}`).innerHTML = '';
+                replyFiles[key] = [];
+                
+                showToast("Reply Posted!", "Your reply has been added.");
+            }
+        }
+
+        function upvoteDiscussionReply(problemId, discussionIndex, replyIndex) {
+            if (!currentUser) {
+                alert("Please login to upvote");
+                showLoginModal();
+                return;
+            }
+
+            const problem = problems.find(p => p.id === problemId);
+            if (problem && problem.discussions[discussionIndex] && problem.discussions[discussionIndex].replies[replyIndex]) {
+                problem.discussions[discussionIndex].replies[replyIndex].upvotes = 
+                    (problem.discussions[discussionIndex].replies[replyIndex].upvotes || 0) + 1;
+                renderDetailedProblemView(problem);
+            }
+        }
+
+        function shareProblem(problemId) {
+            const problem = problems.find(p => p.id === problemId);
+            if (problem) {
+                const url = `${window.location.href}?problem=${problemId}`;
+                if (navigator.share) {
+                    navigator.share({
+                        title: problem.title,
+                        text: problem.description.substring(0, 200),
+                        url: url
+                    });
+                } else {
+                    navigator.clipboard.writeText(url).then(() => {
+                        showToast("Link Copied!", "Problem link has been copied to clipboard!");
+                    });
+                }
+            }
+        }
+
+        // ========== RENDERING ==========
+        function renderProblems() {
+            const container = document.getElementById('problemsFeed');
+            container.innerHTML = '';
+            
+            problems.forEach(problem => {
+                const solvedBadge = problem.solved 
+                    ? '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold ml-2"><i class="fas fa-check mr-1"></i>Solved</span>'
+                    : '<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-semibold ml-2">Open</span>';
+                
+                const borderColor = problem.solved ? 'border-green-200' : 'border-blue-200';
+                const leftBorderColor = problem.solved ? 'border-l-green-500' : 'border-l-blue-500';
+                
+                const discussionsHTML = problem.discussions.map(disc => `
+                    <div class="discussion-bubble bg-gray-50 rounded-lg p-4 mb-3 border border-gray-200">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-2">
+                                    ${disc.user.charAt(0)}
+                                </div>
+                                <span class="font-semibold">${disc.user}</span>
+                            </div>
+                            <span class="text-sm text-gray-500">${disc.timestamp}</span>
+                        </div>
+                        <p class="text-gray-700">${disc.text}</p>
+                        <div class="flex items-center mt-3">
+                            <button class="vote-btn text-gray-500 hover:text-blue-600 text-sm">
+                                <i class="fas fa-arrow-up mr-1"></i>${disc.upvotes}
+                            </button>
+                            <button class="ml-4 text-gray-500 hover:text-purple-600 text-sm">
+                                <i class="fas fa-reply mr-1"></i>Reply
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                const problemHTML = `
+                    <div class="problem-card bg-white rounded-xl shadow-lg mb-6 border ${borderColor} ${leftBorderColor}">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <div class="flex items-center">
+                                        <h3 class="text-xl font-bold text-gray-800 cursor-pointer hover:text-blue-600 transition" onclick="showDetailedProblemView(${problem.id})">${problem.title}</h3>
+                                        ${solvedBadge}
+                                    </div>
+                                    <div class="flex items-center mt-2 text-gray-600 flex-wrap gap-2">
+                                        <span><i class="fas fa-user mr-1"></i>${problem.user}</span>
+                                        <span><i class="far fa-clock mr-1"></i>${problem.timestamp}</span>
+                                        <span class="bg-${problem.category === 'Agriculture' ? 'green' : problem.category === 'Medical' ? 'red' : 'blue'}-100 text-${problem.category === 'Agriculture' ? 'green' : problem.category === 'Medical' ? 'red' : 'blue'}-800 px-2 py-1 rounded-full text-xs">
+                                            ${problem.category}
+                                        </span>
+                                        ${problem.files && problem.files.length > 0 ? `
+                                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                                                <i class="fas fa-paperclip mr-1"></i>${problem.files.length} ${problem.files.length === 1 ? 'file' : 'files'}
+                                            </span>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-blue-600">$${problem.budget}</div>
+                                    <div class="text-sm text-gray-500">Budget</div>
+                                </div>
+                            </div>
+                            
+                            <p class="text-gray-700 mb-6">${problem.description}</p>
+                            
+                            <!-- Discussions Section Preview -->
+                            <div class="mb-6">
+                                <h4 class="font-bold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-comments text-blue-500 mr-2"></i> 
+                                    Discussions (${problem.comments})
+                                </h4>
+                                ${problem.discussions && problem.discussions.length > 0 ? `
+                                    ${problem.discussions.slice(0, 2).map(disc => `
+                                        <div class="discussion-bubble bg-gray-50 rounded-lg p-3 mb-2 border border-gray-200">
+                                            <div class="flex justify-between items-start mb-1">
+                                                <div class="flex items-center">
+                                                    <div class="w-6 h-6 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold mr-2">
+                                                        ${disc.user.charAt(0)}
+                                                    </div>
+                                                    <span class="font-semibold text-sm">${disc.user}</span>
+                                                    ${disc.files && disc.files.length > 0 ? `
+                                                        <span class="ml-2 text-xs text-blue-600">
+                                                            <i class="fas fa-paperclip"></i> ${disc.files.length}
+                                                        </span>
+                                                    ` : ''}
+                                                </div>
+                                                <span class="text-xs text-gray-500">${disc.timestamp}</span>
+                                            </div>
+                                            <p class="text-gray-700 text-sm line-clamp-2">${disc.text}</p>
+                                        </div>
+                                    `).join('')}
+                                    ${problem.discussions.length > 2 ? `
+                                        <p class="text-sm text-gray-500 mt-2">
+                                            <i class="fas fa-ellipsis-h mr-1"></i>
+                                            ${problem.discussions.length - 2} more ${problem.discussions.length - 2 === 1 ? 'discussion' : 'discussions'}
+                                        </p>
+                                    ` : ''}
+                                ` : `
+                                    <p class="text-gray-500 text-sm">No discussions yet. Be the first to comment!</p>
+                                `}
+                                
+                                <div class="mt-4">
+                                    <button onclick="showDetailedProblemView(${problem.id})" class="text-blue-600 hover:text-blue-800 font-medium">
+                                        <i class="fas fa-comments mr-1"></i> View All Discussions
+                                    </button>
+                                    <span class="text-gray-400 mx-2">|</span>
+                                    <button onclick="addDiscussion(${problem.id})" class="text-blue-600 hover:text-blue-800 font-medium">
+                                        <i class="fas fa-plus mr-1"></i> Add Your Solution
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                                <div class="flex items-center space-x-4">
+                                    <button onclick="upvoteProblem(${problem.id})" class="flex items-center text-gray-600 hover:text-blue-600">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        <span>${problem.upvotes}</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-600 hover:text-purple-600">
+                                        <i class="far fa-comment mr-1"></i>
+                                        <span>${problem.comments}</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-600 hover:text-green-600">
+                                        <i class="fas fa-share mr-1"></i>
+                                        <span>Share</span>
+                                    </button>
+                                </div>
+                                
+                                <div class="flex space-x-3">
+                                    <button onclick="showDetailedProblemView(${problem.id})" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90">
+                                        <i class="fas fa-eye mr-2"></i>View Details
+                                    </button>
+                                    ${!problem.solved ? `
+                                    <button onclick="showPaymentModal(${problem.id})" class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:opacity-90">
+                                        <i class="fas fa-handshake mr-2"></i>Hire Expert
+                                    </button>
+                                    ` : `
+                                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium">
+                                        <i class="fas fa-check mr-2"></i>Completed
+                                    </button>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += problemHTML;
+            });
+        }
+
+        // ========== INITIALIZE ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthState();
+            renderProblems();
+        });
+    </script>
+</body>
+</html>
